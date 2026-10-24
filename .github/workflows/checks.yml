@@ -1,0 +1,35 @@
+name: Repository checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.13']
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Validate package and local references
+        run: python -B scripts/check.py --package-root . --json
+      - name: Test checker and lifecycle behavior
+        run: python -B -m unittest discover -s tests -v
+      - name: Install pinned official combination in a temporary home
+        run: |
+          mkdir -p "$RUNNER_TEMP/dumbcane-test-home"
+          python -B scripts/manage.py install --home "$RUNNER_TEMP/dumbcane-test-home" --json
+          python -B scripts/manage.py doctor --home "$RUNNER_TEMP/dumbcane-test-home" --json
+          python -B scripts/manage.py uninstall --home "$RUNNER_TEMP/dumbcane-test-home" --json

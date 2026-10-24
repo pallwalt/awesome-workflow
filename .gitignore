@@ -1,0 +1,17 @@
+# Local evidence and task workspaces
+checks/
+evals/results/
+backups/
+backup/
+.worktrees/
+# Credentials and machine-local settings
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# Python and OS output
+__pycache__/
+*.py[cod]
+.venv/
+.DS_Store
