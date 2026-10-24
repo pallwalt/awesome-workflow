@@ -18,6 +18,14 @@ Use the GitHub-provided noreply address from your account settings for public co
 
 不希望公开个人邮箱时，使用账号设置提供的 GitHub noreply 地址；检查实际远端提交的作者与提交者，不能只检查本地配置。
 
+For GitHub web operations and pull requests, enable the account's
+[private email setting](https://docs.github.com/en/account-and-profile/how-tos/email-preferences/setting-your-commit-email-address).
+Inspect platform-generated test-merge commits as well as authored commits;
+repository-local Git configuration does not control their account identity.
+
+GitHub 网页操作与 PR 还需开启账号邮箱隐私，并核对平台自动生成的测试合并提交；
+仓库内的 Git 邮箱配置不能代替这项检查。
+
 ## Keep the workflow coherent / 保持流程一致
 
 - Dumbcane owns orchestration; Superpowers provides engineering methods. Keep one controller and resolve methods through the selected physical provider.
