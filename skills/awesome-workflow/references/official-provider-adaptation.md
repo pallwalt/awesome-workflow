@@ -1,7 +1,7 @@
 # Codex adaptation of official v7.0.1
 
 Applies to the [pinned official source](superpowers-profile.json). Provider files
-stay unmodified. These integration rules belong to Dumbcane; they do not describe
+stay unmodified. These integration rules belong to Awesome Workflow; they do not describe
 changes to upstream defaults. Follow the real instruction hierarchy. Official
 `using-superpowers` explicitly gives user instructions precedence.
 
@@ -30,5 +30,5 @@ An unresolved cause stays unresolved; mitigation is not proof of root-cause repa
 
 Optional brainstorming visuals may launch a server or contact external services.
 Inspect helpers first and keep the feature optional. Follow actual browser,
-network, cost and cleanup controls; this adapter grants none. Dumbcane's installer
+network, cost and cleanup controls; this adapter grants none. Awesome Workflow's installer
 and workflow do not automatically upload task content or enable telemetry.

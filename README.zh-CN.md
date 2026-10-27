@@ -1,8 +1,8 @@
-# Dumbcane Workflow
+# Awesome Workflow
 
 [English](README.md)
 
-**给使用 Agent 开发的人准备的一套开发流程，优先适配 Codex 桌面 App。** Dumbcane 帮你把新想法或维护需求变成已确定的路线、清楚的验收条件、范围明确的实现、实际验证，以及下次能接着工作的记录。
+**给使用 Agent 开发的人准备的一套开发流程，优先适配 Codex 桌面 App。** Awesome Workflow 帮你把新想法或维护需求变成已确定的路线、清楚的验收条件、范围明确的实现、实际验证，以及下次能接着工作的记录。
 
 **0.2.0 候选版**使用公开、未改写的 [Superpowers v7.0.1](https://github.com/obra/superpowers/tree/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b)，固定提交为 `2ce8aa15d05bd57213e6f746f953aafb7ded7a8b`。安装、依赖检查、更新、回滚和移除统一使用仓库工具。已完成的检查与剩余限制见[验证说明](docs/validation.md)；这不代表已经通过真人新手可用性认证。
 
@@ -18,18 +18,18 @@
 需要 Git、**Python 3.11 或更新版本**，以及支持符号链接的 macOS 或 Linux 环境。此候选版尚不支持 Windows 安装。
 
 ```sh
-git clone https://github.com/pallwalt/dumbcane-workflow.git
-cd dumbcane-workflow
+git clone https://github.com/pallwalt/awesome-workflow.git
+cd awesome-workflow
 python3 -B scripts/manage.py install
 python3 -B scripts/manage.py doctor
 ```
 
-安装工具下载固定版本的公开 Superpowers 压缩包，核对压缩包指纹及声明资源，再创建唯一的 Dumbcane 发现入口。遇到无法确认归属的同名安装会拒绝覆盖；其他技能及客户端配置保持原样。这是 **Dumbcane 自己的安装工具**，不是 Superpowers 官方安装器。
+安装工具下载固定版本的公开 Superpowers 压缩包，核对压缩包指纹及声明资源，再创建唯一的 Awesome Workflow 发现入口。遇到无法确认归属的同名安装会拒绝覆盖；其他技能及客户端配置保持原样。这是 **Awesome Workflow 自己的安装工具**，不是 Superpowers 官方安装器。
 
-安装后，新建 Codex 桌面 App 对话，选择或调用 `dumbcane-workflow`，说明目标、项目位置，以及需要实施、设计还是审查。例如：
+安装后，新建 Codex 桌面 App 对话，选择或调用 `awesome-workflow`，说明目标、项目位置，以及需要实施、设计还是审查。例如：
 
 ```text
-使用 dumbcane-workflow，帮我做一个虚构的灯会日程编辑器。
+使用 awesome-workflow，帮我做一个虚构的灯会日程编辑器。
 在我打开的项目文件夹里工作。先理清最终用途，再比较已有项目和可复用零件，
 由我确定整体路线后再实施。
 ```
@@ -46,7 +46,7 @@ python3 -B scripts/manage.py update
 python3 -B scripts/manage.py doctor
 ```
 
-更新先验证完整的 Dumbcane 与 provider 组合，再切换入口，不自动追随 Superpowers 最新分支。如果已有上一套受管理的组合，可以回滚：
+更新先验证完整的 Awesome Workflow 与 provider 组合，再切换入口，不自动追随 Superpowers 最新分支。如果已有上一套受管理的组合，可以回滚：
 
 ```sh
 python3 -B scripts/manage.py rollback
@@ -65,19 +65,19 @@ python3 -B scripts/manage.py uninstall
 
 | 层次 | 负责内容 |
 | --- | --- |
-| Dumbcane | 任务路由、范围、项目与组件选型、适用的用户决定、状态、交付和续接。 |
+| Awesome Workflow | 任务路由、范围、项目与组件选型、适用的用户决定、状态、交付和续接。 |
 | Superpowers | 设计、规划、调试、测试、实现、评审与验证的工程方法。 |
 
-Dumbcane 从固定安装组合中的 provider 真实目录读取方法，不把同名 Superpowers 方法散装到全局技能目录。未知方法、必需资源缺失、内容漂移或未解决的兼容冲突会阻止受影响阶段。指纹一致只确认内容身份，不证明 Agent 的执行行为正确。
+Awesome Workflow 从固定安装组合中的 provider 真实目录读取方法，不把同名 Superpowers 方法散装到全局技能目录。未知方法、必需资源缺失、内容漂移或未解决的兼容冲突会阻止受影响阶段。指纹一致只确认内容身份，不证明 Agent 的执行行为正确。
 
-上游更新先作为候选进行审查和验证，再随新的受支持组合发布。你主动更新前，进行中的任务继续使用原组合。详见[兼容规则](skills/dumbcane-workflow/references/superpowers-compatibility.md)。
+上游更新先作为候选进行审查和验证，再随新的受支持组合发布。你主动更新前，进行中的任务继续使用原组合。详见[兼容规则](skills/awesome-workflow/references/superpowers-compatibility.md)。
 
 ## 了解流程与参与贡献
 
-- [Skill 入口](skills/dumbcane-workflow/SKILL.md)、[选型规则](skills/dumbcane-workflow/references/open-source-selection.md)与[可选决策卡](skills/dumbcane-workflow/assets/reuse-decision.md)
+- [Skill 入口](skills/awesome-workflow/SKILL.md)、[选型规则](skills/awesome-workflow/references/open-source-selection.md)与[可选决策卡](skills/awesome-workflow/assets/reuse-decision.md)
 - 全新虚构演练：[从零开发](docs/examples/new-project.md)、[维护项目](docs/examples/maintenance.md)、[继续任务](docs/examples/continuation.md)
 - [检查器契约](docs/checker-contract.md)、[评测场景](evals/scenarios.md)与[验证限制](docs/validation.md)
-- [贡献指南](CONTRIBUTING.md)与[路线图](ROADMAP.md)
+- [贡献指南](CONTRIBUTING.md)、[路线图](ROADMAP.md)与[更名说明](RENAME_NOTES.md)
 
 公开仓库不接受私有项目、日志、真实案例摘要或私有经历的改写。报告问题时，请独立编写全新虚构的最小复现。本包命令不上传任务内容或报告。
 

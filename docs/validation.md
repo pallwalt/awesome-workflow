@@ -12,7 +12,7 @@ This page records the acceptance status of the **0.2.0 candidate**. Only fresh f
 
 | Area | Status | What a pass would establish |
 | --- | --- | --- |
-| Package, links, profile schema, and failure cases | Passed locally | Package and official metadata validators passed; 80 tool tests passed (38 checker, 42 lifecycle). |
+| Package, links, profile schema, and failure cases | Passed locally | Package and official metadata validators passed; 87 tool tests passed (38 checker, 49 lifecycle). |
 | Pinned public provider provenance and required bytes | Passed | Official archive digest and 55 declared resources match v7.0.1; content identity only. |
 | Install and doctor in an isolated temporary home | Passed locally | Both downloaded and offline official archives installed and passed doctor in separate temporary homes. |
 | Update failure preservation and unknown-entry rejection | Passed in synthetic tests | Unknown entries, changed snapshots, interrupted transfers, corruption and concurrent entry changes are rejected or retained for recovery. |
@@ -64,7 +64,7 @@ Installation testing initially exposed truncated Python HTTP downloads. They wer
 
 The managed installer and doctor passed against an actual macOS user skill root.
 A fresh local conversation created through Codex desktop App found
-`dumbcane-workflow` in its own skill catalog. The request supplied the skill name,
+the managed skill in its own skill catalog. The request supplied the skill name,
 not an absolute skill or provider path. The agent resolved the managed combination,
 matched all 55 pinned provider resources and read the official methods from that
 combination. The environment was App 26.1021.31345 (build 21828), macOS arm64,

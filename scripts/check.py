@@ -26,7 +26,7 @@ REQUIRED_SKILLS = frozenset((
     "executing-plans", "subagent-driven-development", "verification-before-completion",
     "requesting-code-review", "using-git-worktrees", "finishing-a-development-branch",
 ))
-SKILL = Path("skills/dumbcane-workflow/SKILL.md")
+SKILL = Path("skills/awesome-workflow/SKILL.md")
 PROFILE = SKILL.parent / "references/superpowers-profile.json"
 DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 PERSONAL_PATH = re.compile(r"/(?:Users|home|root)/[^\s\"'<>]+|[A-Za-z]:[\\/](?:Users|Documents and Settings)[\\/][^\s\"'<>]+")
@@ -234,8 +234,8 @@ class Checker:
             return
         metadata = match[1]
         names = re.findall(r"^name:\s*(.+)$", metadata, re.MULTILINE)
-        if len(names) != 1 or names[0].strip().strip("\"'") != "dumbcane-workflow":
-            self.error(f"Own-package metadata check: {SKILL} needs name: dumbcane-workflow", package=True)
+        if len(names) != 1 or names[0].strip().strip("\"'") != "awesome-workflow":
+            self.error(f"Own-package metadata check: {SKILL} needs name: awesome-workflow", package=True)
         descriptions = list(re.finditer(r"^description:[ \t]*(.*)$", metadata, re.MULTILINE))
         valid_description = False
         if len(descriptions) == 1:

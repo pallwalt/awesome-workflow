@@ -5,7 +5,7 @@ anonymized personal case. The decision is synthetic input for this example.
 
 The fictional Moonseed Museum user explicitly approves a small Python
 standard-library label command with a precise JSON interface. That current
-approval applies to the supplied scope. Dumbcane carries it into implementation
+approval applies to the supplied scope. Awesome Workflow carries it into implementation
 and verification without asking the same route question again or inventing a
 previous research session.
 

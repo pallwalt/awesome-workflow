@@ -29,7 +29,7 @@ jobs:
         run: python -B -m unittest discover -s tests -v
       - name: Install pinned official combination in a temporary home
         run: |
-          mkdir -p "$RUNNER_TEMP/dumbcane-test-home"
-          python -B scripts/manage.py install --home "$RUNNER_TEMP/dumbcane-test-home" --json
-          python -B scripts/manage.py doctor --home "$RUNNER_TEMP/dumbcane-test-home" --json
-          python -B scripts/manage.py uninstall --home "$RUNNER_TEMP/dumbcane-test-home" --json
+          mkdir -p "$RUNNER_TEMP/awesome-workflow-test-home"
+          python -B scripts/manage.py install --home "$RUNNER_TEMP/awesome-workflow-test-home" --json
+          python -B scripts/manage.py doctor --home "$RUNNER_TEMP/awesome-workflow-test-home" --json
+          python -B scripts/manage.py uninstall --home "$RUNNER_TEMP/awesome-workflow-test-home" --json

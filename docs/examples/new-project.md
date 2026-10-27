@@ -4,7 +4,7 @@ This is a newly written illustrative walkthrough, not an execution record or
 anonymized personal case. Moonseed Museum and its catalog are fictional.
 
 The user asks for a simple local command that turns a JSON specimen catalog
-into labels. The overall route has not been chosen. Dumbcane first clarifies
+into labels. The overall route has not been chosen. Awesome Workflow first clarifies
 the useful outcome and constraints, then considers existing complete tools
 and reusable smaller parts. It presents the evidence, tradeoffs and recommended
 route. Product implementation waits for the needed user choice.

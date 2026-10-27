@@ -5,7 +5,7 @@ anonymized personal case. Every museum detail and note is invented.
 
 Moonseed Museum already has a small label-export command. A volunteer reports
 that some distinct accessions disappear. The visible ordinary test passes.
-Dumbcane routes the task to investigation and a bounded repair, preserving
+Awesome Workflow routes the task to investigation and a bounded repair, preserving
 existing content and meaningful assertions. A whole-product selection review
 is unnecessary for this requested behavior fix.
 
