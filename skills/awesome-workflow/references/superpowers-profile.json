@@ -6,7 +6,7 @@
     "upstream": "https://github.com/obra/superpowers",
     "revision": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
     "tag": "v7.0.1",
-    "provenance": "Unmodified files independently read from the public pinned official archive. Dumbcane host adaptation is documented separately.",
+    "provenance": "Unmodified files independently read from the public pinned official archive. Awesome Workflow host adaptation is documented separately.",
     "archive_url": "https://codeload.github.com/obra/superpowers/tar.gz/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
     "archive_sha256": "da34247c51339cdd6175b3590261f16e25b08d46669afd5b6fc3f842ab303e20"
   },

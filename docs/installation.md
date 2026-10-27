@@ -1,14 +1,14 @@
 # Installation, updates, and recovery / 安装、更新与恢复
 
-This document describes Dumbcane's managed installation for the **0.2.0 candidate**, targeting Codex desktop App on macOS/Linux. It uses Python 3.11+ and Git; no third-party Python packages are required. Windows, other clients, and clean App discovery have separate validation boundaries in [validation](validation.md).
+This document describes Awesome Workflow's managed installation for the **0.2.0 candidate**, targeting Codex desktop App on macOS/Linux. It uses Python 3.11+ and Git; no third-party Python packages are required. Windows, other clients, and clean App discovery have separate validation boundaries in [validation](validation.md).
 
 本文适用于 macOS/Linux 上、以 Codex 桌面 App 为目标的 **0.2.0 候选版**。需要 Python 3.11+ 和 Git，无需额外 Python 包。Windows、其他客户端及干净 App 自动发现的验证边界分别见验证说明。
 
 ## 1. Install / 安装
 
 ```sh
-git clone https://github.com/pallwalt/dumbcane-workflow.git
-cd dumbcane-workflow
+git clone https://github.com/pallwalt/awesome-workflow.git
+cd awesome-workflow
 python3 -B scripts/manage.py install
 python3 -B scripts/manage.py doctor
 ```
@@ -20,13 +20,17 @@ For `install` and `update`, the default source is the repository containing `scr
 Installation prepares and validates a versioned package/provider combination before exposing one entry:
 
 ```text
-~/.local/share/dumbcane-workflow/
+~/.local/share/awesome-workflow/
   releases/<combination-id>/
     package/
     superpowers/
   ...managed ownership and version state...
-~/.agents/skills/dumbcane-workflow -> managed combination's skill
+~/.agents/skills/awesome-workflow -> managed combination's skill
 ```
+
+`install`, `update`, `rollback`, and `uninstall` move an owned install from the previous product directory onto these paths. `doctor` only reads the directory it finds and does not rename it. If both data directories exist, or the previous skill entry is not an owned symlink, the command stops and preserves them. See [rename notes](../RENAME_NOTES.md).
+
+`install`、`update`、`rollback` 和 `uninstall` 会把仍能确认归属的上一产品目录安装迁到这些路径。`doctor` 只读取找到的目录，不改名。若两个数据目录同时存在，或旧技能入口不是受管理的符号链接，命令会停止并保留原内容。详见[更名说明](../RENAME_NOTES.md)。
 
 The exact combination ID is managed by the tool. Provider method files retain their upstream bytes in `superpowers/`; the controller resolves methods from that physical directory. The tool does not install each provider method as a global skill, alter other client configuration, or replace unrelated skills.
 
@@ -42,10 +46,10 @@ The exact combination ID is managed by the tool. Provider method files retain th
 
 `doctor` 检查受管理入口、包、provider 资源及归属。成功仅说明这些安装状态通过检查，不证明 App 已加载、模型必然遵循，或项目已经完成。
 
-Start a **new** Codex desktop App conversation after installation or a version switch. Select/invoke `dumbcane-workflow`, describe the goal and target project, and specify the scope. If it is not listed, give the agent the installed skill's absolute path. Replace placeholders before using this instruction:
+Start a **new** Codex desktop App conversation after installation or a version switch. Select/invoke `awesome-workflow`, describe the goal and target project, and specify the scope. If it is not listed, give the agent the installed skill's absolute path. Replace placeholders before using this instruction:
 
 ```text
-Read [absolute home directory]/.agents/skills/dumbcane-workflow/SKILL.md
+Read [absolute home directory]/.agents/skills/awesome-workflow/SKILL.md
 and use it for this task. Resolve its managed provider and check the dependency
 before a dependent stage. Goal: [desired outcome]. Project: [authorized folder].
 Scope: [implementation, design only, or read-only review].
@@ -57,7 +61,7 @@ If discovery is unavailable, explicit-path loading is a fallback with its own ev
 
 ## 3. The pinned dependency / 固定依赖
 
-The candidate binds to official [Superpowers v7.0.1](https://github.com/obra/superpowers/tree/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b), commit `2ce8aa15d05bd57213e6f746f953aafb7ded7a8b`. The [profile](../skills/dumbcane-workflow/references/superpowers-profile.json) declares required methods, files, and hashes. The installer normally obtains that public archive and checks it before activation; it does not download a private customization.
+The candidate binds to official [Superpowers v7.0.1](https://github.com/obra/superpowers/tree/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b), commit `2ce8aa15d05bd57213e6f746f953aafb7ded7a8b`. The [profile](../skills/awesome-workflow/references/superpowers-profile.json) declares required methods, files, and hashes. The installer normally obtains that public archive and checks it before activation; it does not download a private customization.
 
 候选版固定使用上述官方公开提交，必需方法、文件及指纹由 profile 声明。安装器默认下载公开压缩包并检查，不读取或分发私有定制依赖。
 
@@ -83,7 +87,7 @@ Both the default download and `--provider-archive` verify the pinned archive SHA
 
 默认下载与 `--provider-archive` 均核对固定压缩包整体 SHA-256 及声明资源。两项 provider 参数只能选一项，`update` 也支持相同参数。
 
-The upstream project currently documents its own installation mechanisms, including Codex plugin distribution. This managed layout is Dumbcane's distribution choice for a pinned combination; it is not an upstream installer or a replacement for upstream installation advice. Read [third-party notices](../THIRD_PARTY.md) and [compatibility rules](../skills/dumbcane-workflow/references/superpowers-compatibility.md).
+The upstream project currently documents its own installation mechanisms, including Codex plugin distribution. This managed layout is Awesome Workflow's distribution choice for a pinned combination; it is not an upstream installer or a replacement for upstream installation advice. Read [third-party notices](../THIRD_PARTY.md) and [compatibility rules](../skills/awesome-workflow/references/superpowers-compatibility.md).
 
 For online downloads the tool uses system `curl` when available, with a Python
 standard-library HTTP fallback. It installs neither downloader. Transfers are
@@ -119,9 +123,9 @@ python3 -B scripts/manage.py rollback
 python3 -B scripts/manage.py doctor
 ```
 
-Rollback validates the saved combination and switches Dumbcane **and** its provider together. It does not change your project files or undo generated code. A missing, changed, or unowned saved combination is not safe to activate and must be reported. Start a new App conversation after a successful switch.
+Rollback validates the saved combination and switches Awesome Workflow **and** its provider together. It does not change your project files or undo generated code. A missing, changed, or unowned saved combination is not safe to activate and must be reported. Start a new App conversation after a successful switch.
 
-回滚会验证已保存组合，再整体切换 Dumbcane 与 provider。它不撤销项目代码；缺失、已变更或归属不明的旧组合不能激活。切换成功后新建 App 对话。
+回滚会验证已保存组合，再整体切换 Awesome Workflow 与 provider。它不撤销项目代码；缺失、已变更或归属不明的旧组合不能激活。切换成功后新建 App 对话。
 
 ## 6. Uninstall / 移除
 

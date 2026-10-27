@@ -80,7 +80,7 @@ Both interfaces are described completely in their staged task specifications.
 
 This directory ships task definitions and checks, not a claim that an agent
 completed them. Publish a result only after actual execution, identifying the
-tested Dumbcane version, official Superpowers commit, model, host, capabilities,
+tested Awesome Workflow version, official Superpowers commit, model, host, capabilities,
 case, interventions and failed checks. Preserve failed attempts in private
 working evidence. Never publish raw conversations, machine paths, personal
 case summaries or existing private logs. Public summaries may contain only

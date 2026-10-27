@@ -40,7 +40,7 @@ File count is not the deciding factor. These labels select an applicable provide
 | Task | Method to resolve and read when needed |
 | --- | --- |
 | Skill discovery and provider orientation | `using-superpowers`; do not restart discovery in every bounded child. |
-| New-project reuse and differentiation | Dumbcane's [selection reference](open-source-selection.md) supplies evidence to the existing design discussion; no second orchestration loop. |
+| New-project reuse and differentiation | Awesome Workflow's [selection reference](open-source-selection.md) supplies evidence to the existing design discussion; no second orchestration loop. |
 | Unresolved design or new behavior | `brainstorming`, then `writing-plans` when the supported method calls for a plan. |
 | Failure, bug or unexpected behavior | `systematic-debugging`; use `test-driven-development` for the applicable repair. |
 | Review feedback | `receiving-code-review` before acting on findings. |

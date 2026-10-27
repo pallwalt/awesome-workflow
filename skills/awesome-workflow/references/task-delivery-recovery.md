@@ -4,7 +4,7 @@
 
 Use the [task record asset](../assets/task-record.md) when a task needs cross-phase coordination, handoff or later continuation. Simple one-step edits do not automatically need a new file. Reuse an existing task record where possible.
 
-Prefer an explicitly private project artifact location. Otherwise keep real task records outside the repository, under the user's local application-data directory in `dumbcane-workflow/tasks/<opaque-task-id>/`. Do not put personal cases, runtime logs or rewritten summaries in a public repository, even as a sanitized example. Link to existing Superpowers designs, plans, ledgers and reports instead of copying them. A public contribution or bug reproduction uses newly authored unrelated fictional data. Fill or remove placeholders before treating a record as evidence.
+Prefer an explicitly private project artifact location. Otherwise keep real task records outside the repository, under the user's local application-data directory in `awesome-workflow/tasks/<opaque-task-id>/`. Do not put personal cases, runtime logs or rewritten summaries in a public repository, even as a sanitized example. Link to existing Superpowers designs, plans, ledgers and reports instead of copying them. A public contribution or bug reproduction uses newly authored unrelated fictional data. Fill or remove placeholders before treating a record as evidence.
 
 Record the requested deliverable, acceptance, source of decisions, active workspace, actual dependency profile, relevant baseline/user edits, current phase, artifact pointers, checks, failures and next step. Add owned processes/resources only if the task starts them. Do not store secrets, access tokens or model reasoning traces.
 

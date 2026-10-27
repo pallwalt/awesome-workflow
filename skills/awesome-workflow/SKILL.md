@@ -1,9 +1,9 @@
 ---
-name: dumbcane-workflow
+name: awesome-workflow
 description: Coordinate development in Codex with Superpowers, including new-project GitHub reuse and differentiation review, implementation, maintenance, review feedback and resumption. Preserve investigation or design-only scope.
 ---
 
-# Dumbcane Workflow
+# Awesome Workflow
 
 Help the user turn a development request into a runnable, checkable result that another session can continue. Superpowers is a required method provider. This skill coordinates its methods; it does not implement another development framework or confer tool permissions.
 
@@ -20,7 +20,7 @@ Read [task, delivery and recovery](references/task-delivery-recovery.md) for mul
 
 ## One controller and one source of task constraints
 
-The current main agent remains the controller. Invoking a Superpowers execution skill changes the controller's method; it does not create another orchestrator. During SDD, use its implementation/review loop, not a simultaneous Dumbcane loop for the same task.
+The current main agent remains the controller. Invoking a Superpowers execution skill changes the controller's method; it does not create another orchestrator. During SDD, use its implementation/review loop, not a simultaneous Awesome Workflow loop for the same task.
 
 Keep one source for the goal, acceptance criteria, workspace, authorization boundaries and artifact locations. Reuse the project's design, plan and execution ledger. Create a short record using [the task record asset](assets/task-record.md) only when continuation or cross-phase coordination needs it. Link to existing artifacts instead of duplicating them.
 

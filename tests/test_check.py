@@ -26,12 +26,12 @@ class CheckerTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.package = self.root / "package"
         self.provider = self.root / "provider"
-        self.skill = self.package / "skills/dumbcane-workflow/SKILL.md"
+        self.skill = self.package / "skills/awesome-workflow/SKILL.md"
         self.profile_path = self.skill.parent / "references/superpowers-profile.json"
         self.skill.parent.mkdir(parents=True)
         self.profile_path.parent.mkdir()
         self.skill.write_text(
-            "---\nname: dumbcane-workflow\ndescription: Test package metadata.\n---\n"
+            "---\nname: awesome-workflow\ndescription: Test package metadata.\n---\n"
             "[Profile](references/superpowers-profile.json)\n", encoding="utf-8"
         )
         self.profile = {
@@ -206,7 +206,7 @@ class CheckerTests(unittest.TestCase):
         docs = self.package / "docs"
         docs.mkdir()
         (docs / "asset (1).txt").write_bytes(b"asset")
-        (docs / "readme.md").write_text("[Skill](../skills/dumbcane-workflow/SKILL.md#part)\n"
+        (docs / "readme.md").write_text("[Skill](../skills/awesome-workflow/SKILL.md#part)\n"
                                         "[Asset](asset%20(1).txt)\n"
                                         "[Asset with title](<asset (1).txt> \"title\")\n")
         result, report = self.run_check()

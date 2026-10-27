@@ -1,8 +1,8 @@
-# Dumbcane Workflow
+# Awesome Workflow
 
 [简体中文](README.zh-CN.md)
 
-**A development workflow for people building with an agent. Codex desktop App first.** Dumbcane helps turn an idea or maintenance request into a chosen route, clear acceptance criteria, scoped implementation, observed verification, and a useful continuation record.
+**A development workflow for people building with an agent. Codex desktop App first.** Awesome Workflow helps turn an idea or maintenance request into a chosen route, clear acceptance criteria, scoped implementation, observed verification, and a useful continuation record.
 
 The **0.2.0 candidate** uses the public, unmodified [Superpowers v7.0.1](https://github.com/obra/superpowers/tree/2ce8aa15d05bd57213e6f746f953aafb7ded7a8b), pinned to commit `2ce8aa15d05bd57213e6f746f953aafb7ded7a8b`. Installation, dependency checks, updates, rollback, and removal use one repository tool. See [validation](docs/validation.md) for completed checks and open limits; this is not a claim of certified beginner usability.
 
@@ -18,18 +18,18 @@ The **0.2.0 candidate** uses the public, unmodified [Superpowers v7.0.1](https:/
 Requirements: Git, Python **3.11 or newer**, and a macOS or Linux environment with symbolic-link support. Windows is not a supported installation target for this candidate.
 
 ```sh
-git clone https://github.com/pallwalt/dumbcane-workflow.git
-cd dumbcane-workflow
+git clone https://github.com/pallwalt/awesome-workflow.git
+cd awesome-workflow
 python3 -B scripts/manage.py install
 python3 -B scripts/manage.py doctor
 ```
 
-The installer downloads the pinned public Superpowers archive, verifies its archive digest and declared resources, and creates one discoverable Dumbcane entry. It refuses an unrecognized existing installation and leaves other skills and client settings alone. It is **Dumbcane's installation tool**, not the official Superpowers installer.
+The installer downloads the pinned public Superpowers archive, verifies its archive digest and declared resources, and creates one discoverable Awesome Workflow entry. It refuses an unrecognized existing installation and leaves other skills and client settings alone. It is **Awesome Workflow's installation tool**, not the official Superpowers installer.
 
-After installation, start a new Codex desktop App conversation and select or invoke `dumbcane-workflow`. Tell the agent the goal, the target project, and whether it should implement, design, or review. For example:
+After installation, start a new Codex desktop App conversation and select or invoke `awesome-workflow`. Tell the agent the goal, the target project, and whether it should implement, design, or review. For example:
 
 ```text
-Use dumbcane-workflow. Help me build a fictional lantern-festival schedule editor.
+Use awesome-workflow. Help me build a fictional lantern-festival schedule editor.
 Work in the project folder I have opened. Start by clarifying the outcome and
 comparing existing projects and reusable parts. Let me choose the overall route.
 ```
@@ -46,7 +46,7 @@ python3 -B scripts/manage.py update
 python3 -B scripts/manage.py doctor
 ```
 
-An update validates a complete Dumbcane/provider combination before switching the entry. It does not automatically follow Superpowers' latest branch. If a previous managed combination exists:
+An update validates a complete Awesome Workflow/provider combination before switching the entry. It does not automatically follow Superpowers' latest branch. If a previous managed combination exists:
 
 ```sh
 python3 -B scripts/manage.py rollback
@@ -65,19 +65,19 @@ See [installation](docs/installation.md) for ownership checks and what each oper
 
 | Layer | Responsibility |
 | --- | --- |
-| Dumbcane | Task routing, scope, project and component selection, applicable user decisions, status, delivery, and continuation. |
+| Awesome Workflow | Task routing, scope, project and component selection, applicable user decisions, status, delivery, and continuation. |
 | Superpowers | Engineering methods for design, planning, debugging, testing, implementation, review, and verification. |
 
-Dumbcane loads methods from its pinned installation's physical provider directory. It does not scatter same-named Superpowers methods into your global skill directory. Unknown methods, missing required resources, drift, or unresolved conflicts block the affected stage. Matching hashes establish content identity, not proof that an agent follows a method correctly.
+Awesome Workflow loads methods from its pinned installation's physical provider directory. It does not scatter same-named Superpowers methods into your global skill directory. Unknown methods, missing required resources, drift, or unresolved conflicts block the affected stage. Matching hashes establish content identity, not proof that an agent follows a method correctly.
 
-Upstream updates are reviewed as candidates, tested, then included in a new supported combination. Existing tasks retain their installed combination until you update. See [compatibility](skills/dumbcane-workflow/references/superpowers-compatibility.md).
+Upstream updates are reviewed as candidates, tested, then included in a new supported combination. Existing tasks retain their installed combination until you update. See [compatibility](skills/awesome-workflow/references/superpowers-compatibility.md).
 
 ## Read and contribute
 
-- [Skill entry](skills/dumbcane-workflow/SKILL.md), [selection rules](skills/dumbcane-workflow/references/open-source-selection.md), and [optional decision card](skills/dumbcane-workflow/assets/reuse-decision.md)
+- [Skill entry](skills/awesome-workflow/SKILL.md), [selection rules](skills/awesome-workflow/references/open-source-selection.md), and [optional decision card](skills/awesome-workflow/assets/reuse-decision.md)
 - Fictional walkthroughs: [new project](docs/examples/new-project.md), [maintenance](docs/examples/maintenance.md), [continuation](docs/examples/continuation.md)
 - [Checker contract](docs/checker-contract.md), [evaluation scenarios](evals/scenarios.md), and [validation limits](docs/validation.md)
-- [Contributing](CONTRIBUTING.md) and [roadmap](ROADMAP.md)
+- [Contributing](CONTRIBUTING.md), [roadmap](ROADMAP.md), and [rename notes](RENAME_NOTES.md)
 
 The public repository must contain no private projects, logs, real-case summaries, or rewritten accounts of private activity. Report a defect using a newly invented, independent reproduction. No command in this package uploads task content or reports.
 

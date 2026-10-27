@@ -11,13 +11,13 @@ The default package root is the parent of `scripts/`. Optional original-preserva
 
 ## Package checks
 
-Inspect `skills/dumbcane-workflow/SKILL.md`, local Markdown references and assets, and local Markdown links throughout the distributable package. Exclude generated `checks/`, `evals/results/`, `.git`, and bytecode caches. Ignore external destinations, anchors, and links inside fenced code blocks. Reject broken local references, paths escaping the package, symlinks escaping the package, and personal absolute paths in distributable text.
+Inspect `skills/awesome-workflow/SKILL.md`, local Markdown references and assets, and local Markdown links throughout the distributable package. Exclude generated `checks/`, `evals/results/`, `.git`, and bytecode caches. Ignore external destinations, anchors, and links inside fenced code blocks. Reject broken local references, paths escaping the package, symlinks escaping the package, and personal absolute paths in distributable text.
 
 The own-package metadata check covers this package's required name and description. It is not a general YAML parser or a replacement for an applicable full skill validator.
 
 ## Provider profile
 
-The actual [profile](../skills/dumbcane-workflow/references/superpowers-profile.json) declares schema version, profile identity, public provider provenance and fixed revision, behavior status, method entry paths, and required file SHA-256 values. It identifies official `obra/superpowers` v7.0.1 at commit `2ce8aa15d05bd57213e6f746f953aafb7ded7a8b`.
+The actual [profile](../skills/awesome-workflow/references/superpowers-profile.json) declares schema version, profile identity, public provider provenance and fixed revision, behavior status, method entry paths, and required file SHA-256 values. It identifies official `obra/superpowers` v7.0.1 at commit `2ce8aa15d05bd57213e6f746f953aafb7ded7a8b`.
 
 Provider-relative paths must be portable and remain inside an explicitly supplied provider root. Reject absolute paths, traversal, malformed hashes, duplicate JSON keys, empty maps, undeclared method entries, and files resolving outside that root. Each method entry must also be present in the file map.
 

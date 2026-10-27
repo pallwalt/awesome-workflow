@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install one pinned Dumbcane/Superpowers combination without running its code.
+"""Install one pinned Awesome Workflow/Superpowers combination without running its code.
 
 Python 3.11+, macOS/Linux. A release manifest is an integrity inventory, not a
 signature: obtain this script and release.json from a trusted reviewed release.
@@ -35,9 +35,20 @@ except ImportError:  # Installation is intentionally unsupported on Windows.
     fcntl = None
 
 
-MANAGER = "dumbcane-workflow"
-PROFILE = "skills/dumbcane-workflow/references/superpowers-profile.json"
-ENTRY = "skills/dumbcane-workflow"
+MANAGER = "awesome-workflow"
+LEGACY_MANAGER = "dumbcane-workflow"
+MANAGERS = frozenset((MANAGER, LEGACY_MANAGER))
+PROFILE = "skills/awesome-workflow/references/superpowers-profile.json"
+LEGACY_PROFILE = "skills/dumbcane-workflow/references/superpowers-profile.json"
+ENTRY = "skills/awesome-workflow"
+LEGACY_ENTRY = "skills/dumbcane-workflow"
+DATA_DIR = ".local/share/awesome-workflow"
+LEGACY_DATA_DIR = ".local/share/dumbcane-workflow"
+SKILL_LINK = ".agents/skills/awesome-workflow"
+LEGACY_SKILL_LINK = ".agents/skills/dumbcane-workflow"
+PARKING_NAME = re.compile(r"\.(?:awesome-workflow|dumbcane-workflow)\.[0-9a-f]{32}\.switch\Z")
+HTTP_STATUS_LABEL = "AWESOME_WORKFLOW_HTTP_STATUS"
+USER_AGENT = "Awesome-Workflow/1"
 HEX64 = re.compile(r"[0-9a-f]{64}\Z")
 REVISION = re.compile(r"[0-9a-f]{40}\Z")
 MAX_ARCHIVE = 64 * 1024 * 1024
@@ -177,8 +188,22 @@ def archive_url(url, revision):
     return url
 
 
-def load_profile(root):
-    profile = read_json(root / PROFILE)
+def declared_package_markers(expected):
+    """Accept the current skill tree or a snapshot installed under the previous name."""
+    if "release.json" in expected or "scripts/manage.py" not in expected:
+        raise ManagerError("Release inventory is incomplete or contains itself")
+    pairs = (
+        (f"{ENTRY}/SKILL.md", PROFILE),
+        (f"{LEGACY_ENTRY}/SKILL.md", LEGACY_PROFILE),
+    )
+    found = [pair for pair in pairs if set(pair) <= expected.keys()]
+    if len(found) != 1:
+        raise ManagerError("Release inventory is incomplete or contains itself")
+    return found[0]
+
+
+def load_profile(root, relative=PROFILE):
+    profile = read_json(root / relative)
     if not isinstance(profile, dict) or profile.get("schema_version") != 1:
         raise ManagerError("Unsupported provider profile")
     provider = profile.get("provider")
@@ -211,12 +236,11 @@ def load_source(root):
             or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._+-]{0,63}", release["version"])):
         raise ManagerError("Unsupported release manifest")
     expected = dict(hash_map(release["files"]))
-    if "release.json" in expected or not {PROFILE, f"{ENTRY}/SKILL.md", "scripts/manage.py"} <= expected.keys():
-        raise ManagerError("Release inventory is incomplete or contains itself")
+    _skill, profile_path = declared_package_markers(expected)
     release_bytes = regular_bytes(root / "release.json")
     expected["release.json"] = sha(release_bytes)
     exact_inventory(root, expected, source=True)
-    profile = load_profile(root)
+    profile = load_profile(root, profile_path)
     return root, release, expected, sha(release_bytes), profile
 
 
@@ -249,13 +273,13 @@ class PinnedRedirect(HTTPRedirectHandler):
 def download_with_curl(executable, provider, output):
     """Use an available system transport; never give curl an output pathname."""
     url = archive_url(provider["archive_url"], provider["revision"])
-    footer = "\nDUMBCANE_HTTP_STATUS:%{http_code}\n"
+    footer = f"\n{HTTP_STATUS_LABEL}:%{{http_code}}\n"
     arguments = [
         executable, "--disable", "--silent", "--show-error", "--fail",
         "--proto", "=https", "--proto-redir", "=https", "--max-redirs", "0",
         "--connect-timeout", "10", "--max-time", "30", "--max-filesize", str(MAX_ARCHIVE),
         "--output", "-", "--write-out", footer,
-        "--user-agent", "Dumbcane-Workflow/1 (system curl installer)",
+        "--user-agent", USER_AGENT + " (system curl installer)",
         "--header", "Accept-Encoding: identity", "--url", url,
     ]
     # --disable is the first option: local .curlrc cannot inject output files,
@@ -295,7 +319,7 @@ def download_with_curl(executable, provider, output):
             returncode = process.wait(timeout=max(0.01, deadline - time.monotonic()))
         except subprocess.TimeoutExpired as exc:
             raise RetryableDownload("System curl did not finish within its bounded timeout") from exc
-        status_match = re.search(rb"\nDUMBCANE_HTTP_STATUS:([0-9]{3})\n\Z", buffer)
+        status_match = re.search(rb"\n" + HTTP_STATUS_LABEL.encode("ascii") + rb":([0-9]{3})\n\Z", buffer)
         status = int(status_match[1]) if status_match else 0
         if status >= 500:
             raise RetryableDownload(f"Official archive server returned HTTP {status}")
@@ -325,7 +349,7 @@ def download_archive(provider, destination):
     curl = shutil.which("curl")
     opener = None if curl else build_opener(PinnedRedirect(provider["revision"]))
     request = Request(archive_url(provider["archive_url"], provider["revision"]), headers={
-        "User-Agent": "Dumbcane-Workflow/1 (Python standard-library installer)",
+        "User-Agent": USER_AGENT + " (Python standard-library installer)",
         "Accept-Encoding": "identity",
     })
     for attempt in range(1, 4):
@@ -468,7 +492,7 @@ def validate_descriptor(value):
 def validate_state(value):
     if (not isinstance(value, dict)
             or set(value) != {"schema_version", "manager", "installed", "current", "previous"}
-            or value["schema_version"] != 1 or value["manager"] != MANAGER
+            or value["schema_version"] != 1 or value["manager"] not in MANAGERS
             or not isinstance(value["installed"], bool)):
         raise ManagerError("Invalid manager state; preserve it for manual inspection")
     validate_descriptor(value["current"])
@@ -484,12 +508,39 @@ def lexists(path):
 class Manager:
     def __init__(self, home):
         self.home = Path(home).expanduser().absolute().resolve()
-        self.base = self.home / ".local/share/dumbcane-workflow"
-        self.releases = self.base / "releases"
-        self.entry = self.home / ".agents/skills/dumbcane-workflow"
-        self.state_file = self.base / "state.json"
-        self.journal = self.base / "transaction.json"
+        self.new_base = self.home / DATA_DIR
+        self.legacy_base = self.home / LEGACY_DATA_DIR
+        self.new_entry = self.home / SKILL_LINK
+        self.legacy_entry = self.home / LEGACY_SKILL_LINK
+        self.migration_note = None
         self.recovery = None
+        self.bind_home(self.new_base, self.new_entry)
+
+    def bind_home(self, base, entry):
+        self.base = base
+        self.releases = base / "releases"
+        self.entry = entry
+        self.state_file = base / "state.json"
+        self.journal = base / "transaction.json"
+
+    def canonical_install_path(self, value):
+        """Compare release paths after the data directory has been renamed."""
+        legacy = str(self.legacy_base)
+        current = str(self.new_base)
+        if value == legacy or value.startswith(legacy + os.sep):
+            return current + value[len(legacy):]
+        return value
+
+    def select_installed_home(self):
+        """Point at the owned install without creating or renaming it."""
+        new_exists = lexists(self.new_base)
+        old_exists = lexists(self.legacy_base)
+        if new_exists and old_exists:
+            raise ManagerError("Both awesome-workflow and dumbcane-workflow data directories exist; preserved both")
+        if old_exists:
+            self.bind_home(self.legacy_base, self.legacy_entry)
+        else:
+            self.bind_home(self.new_base, self.new_entry)
 
     def check_ancestors(self, path):
         relative = path.relative_to(self.home)
@@ -516,8 +567,11 @@ class Manager:
     def lock(self):
         if fcntl is None:
             raise ManagerError("This manager currently supports macOS and Linux only")
-        self.mkdir(self.base)
-        lock_path = self.base / "manager.lock"
+        if lexists(self.new_base) and lexists(self.legacy_base):
+            raise ManagerError("Both awesome-workflow and dumbcane-workflow data directories exist; preserved both")
+        lock_base = self.legacy_base if lexists(self.legacy_base) else self.new_base
+        self.mkdir(lock_base)
+        lock_path = lock_base / "manager.lock"
         try:
             descriptor = os.open(lock_path, os.O_CREAT | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0), 0o600)
             if not stat.S_ISREG(os.fstat(descriptor).st_mode):
@@ -531,24 +585,110 @@ class Manager:
             except BlockingIOError as exc:
                 raise ManagerError("Another lifecycle operation is already running") from exc
             try:
+                if lock_base == self.legacy_base:
+                    self.migrate_owned_legacy_install()
+                else:
+                    self.bind_home(self.new_base, self.new_entry)
+                    self.relink_owned_legacy_skill()
                 self.check_ancestors(self.releases)
                 self.check_ancestors(self.entry.parent)
                 yield
             finally:
                 fcntl.flock(stream, fcntl.LOCK_UN)
 
+    def assert_legacy_skill_can_move(self):
+        if lexists(self.new_entry):
+            raise ManagerError("New skill entry already exists; preserved the legacy install")
+        if not lexists(self.legacy_entry):
+            return
+        if not self.legacy_entry.is_symlink():
+            raise ManagerError("Legacy skill entry is not a managed symlink; preserved it")
+        target = os.readlink(self.legacy_entry)
+        releases = str(self.legacy_base / "releases")
+        if not target.startswith(releases + os.sep) or not os.path.isdir(target):
+            raise ManagerError("Legacy skill entry does not point at this manager's releases; preserved it")
+
+    def relink_owned_legacy_skill(self):
+        """Point the discoverable skill at the renamed data directory, when we own the old link."""
+        if not lexists(self.legacy_entry):
+            return
+        if not self.legacy_entry.is_symlink():
+            raise ManagerError("Legacy skill entry is not a managed symlink; preserved it")
+        target = self.canonical_install_path(os.readlink(self.legacy_entry))
+        releases = str(self.new_base / "releases")
+        if not target.startswith(releases + os.sep):
+            raise ManagerError("Legacy skill entry does not point at this manager's releases; preserved it")
+        if not os.path.isdir(target):
+            raise ManagerError("Legacy skill target is missing; preserved the old entry")
+        if lexists(self.new_entry):
+            if (self.new_entry.is_symlink()
+                    and self.canonical_install_path(os.readlink(self.new_entry)) == target):
+                self.legacy_entry.unlink()
+                return
+            raise ManagerError("New skill entry already exists; preserved the legacy skill entry")
+        if not self.new_entry.parent.is_dir():
+            raise ManagerError("Skill parent directory is missing; preserved the legacy skill entry")
+        os.symlink(target, self.new_entry)
+        self.legacy_entry.unlink()
+
+    def migrate_owned_legacy_install(self):
+        """Move ~/.local/share/dumbcane-workflow onto awesome-workflow when we still own it.
+
+        Receipts and older package trees keep their recorded bytes. A later
+        transaction writes the new manager id. doctor does not call this.
+        """
+        if self.legacy_base.is_symlink() or not stat.S_ISDIR(self.legacy_base.lstat().st_mode):
+            raise ManagerError("Legacy data path is not an ordinary directory; preserved it")
+        self.bind_home(self.legacy_base, self.legacy_entry)
+        try:
+            if not lexists(self.state_file):
+                raise ManagerError("Legacy data directory has no manager state; preserved it")
+            state = self.state()
+            if state["manager"] != LEGACY_MANAGER:
+                raise ManagerError("Legacy data directory is not owned by this manager; preserved it")
+            if lexists(self.journal):
+                self.load_transaction()
+            self.assert_legacy_skill_can_move()
+            self.check_ancestors(self.new_base)
+            os.rename(self.legacy_base, self.new_base)
+        except Exception:
+            self.bind_home(self.new_base, self.new_entry)
+            raise
+        self.bind_home(self.new_base, self.new_entry)
+        try:
+            self.relink_owned_legacy_skill()
+        except ManagerError as exc:
+            raise ManagerError("Data directory was moved to awesome-workflow; skill entry was preserved: "
+                               + str(exc)) from exc
+        note = "Migrated an owned dumbcane-workflow installation to awesome-workflow paths"
+        self.migration_note = note if self.migration_note is None else f"{self.migration_note}; {note}"
+
     def state(self):
         if not lexists(self.state_file):
             return None
         return validate_state(read_json(self.state_file))
 
+    def release_skill(self, release_id):
+        package = self.releases / release_id / "package"
+        for relative in (ENTRY, LEGACY_ENTRY):
+            skill = package / relative
+            marker = skill / "SKILL.md"
+            try:
+                info = marker.lstat()
+            except OSError:
+                continue
+            if stat.S_ISREG(info.st_mode) and not skill.is_symlink():
+                return skill
+        return package / ENTRY
+
     def target(self, descriptor):
-        return str(self.releases / validate_descriptor(descriptor)["release_id"] / "package" / ENTRY)
+        return str(self.release_skill(validate_descriptor(descriptor)["release_id"]))
 
     def entry_matches(self, target):
         if target is None:
             return not lexists(self.entry)
-        return self.entry.is_symlink() and os.readlink(self.entry) == target
+        return (self.entry.is_symlink()
+                and self.canonical_install_path(os.readlink(self.entry)) == self.canonical_install_path(target))
 
     def expected_target(self, state):
         return self.target(state["current"]) if state and state["installed"] else None
@@ -571,7 +711,7 @@ class Manager:
         keys = {"schema_version", "manager", "release_id", "version", "package_files",
                 "provider_files", "provider_revision", "archive_sha256", "archive_verified", "provider_source"}
         if (not isinstance(receipt, dict) or set(receipt) != keys
-                or receipt["schema_version"] != 1 or receipt["manager"] != MANAGER
+                or receipt["schema_version"] != 1 or receipt["manager"] not in MANAGERS
                 or receipt["release_id"] != descriptor["release_id"]
                 or not isinstance(receipt["archive_verified"], bool)
                 or receipt["provider_source"] not in ("download", "archive", "local_directory")):
@@ -608,9 +748,9 @@ class Manager:
             if lexists(temporary):
                 temporary.unlink()
 
-    @staticmethod
-    def path_matches(path, target):
-        return path.is_symlink() and target is not None and os.readlink(path) == target
+    def path_matches(self, path, target):
+        return (path.is_symlink() and target is not None
+                and self.canonical_install_path(os.readlink(path)) == self.canonical_install_path(target))
 
     def park(self, expected, destination):
         """Move, then inspect the object actually moved; never replace an entry.
@@ -653,9 +793,9 @@ class Manager:
     def load_transaction(self):
         value = read_json(self.journal)
         if (not isinstance(value, dict) or set(value) != {"schema_version", "manager", "old", "new", "parking"}
-                or value["schema_version"] != 1 or value["manager"] != MANAGER
+                or value["schema_version"] != 1 or value["manager"] not in MANAGERS
                 or not isinstance(value["parking"], str)
-                or not re.fullmatch(r"\.dumbcane-workflow\.[0-9a-f]{32}\.switch", value["parking"])):
+                or PARKING_NAME.fullmatch(value["parking"]) is None):
             raise ManagerError("Invalid recovery journal; manual inspection is required")
         if value["old"] is not None:
             validate_state(value["old"])
@@ -722,7 +862,7 @@ class Manager:
     def transaction(self, old, new):
         if lexists(self.journal):
             raise ManagerError("An unresolved recovery journal already exists")
-        parking = self.entry.parent / f".dumbcane-workflow.{uuid.uuid4().hex}.switch"
+        parking = self.entry.parent / f".{MANAGER}.{uuid.uuid4().hex}.switch"
         self.atomic_json(self.journal, {"schema_version": 1, "manager": MANAGER,
                                        "old": old, "new": new, "parking": parking.name})
         try:
@@ -804,9 +944,10 @@ class Manager:
                 if old:
                     self.verify_release(old["current"])
                 current = self.prepare(source, provider_source, provider_archive)
-                new = {"schema_version": 1, "manager": MANAGER, "installed": True,
-                       "current": current,
-                       "previous": (old["current"] if old["current"] != current else old["previous"]) if old else None}
+                previous = None
+                if old:
+                    previous = old["current"] if old["current"] != current else old["previous"]
+                new = self.state_record(True, current, previous)
                 self.mkdir(self.entry.parent)
             else:
                 if not old or not old["installed"]:
@@ -816,23 +957,29 @@ class Manager:
                     current = self.prepare(source, provider_source, provider_archive)
                     if current == old["current"]:
                         return self.result(command, old, "Already at this exact release")
-                    new = dict(old, current=current, previous=old["current"])
+                    new = self.state_record(True, current, old["current"])
                 elif command == "rollback":
                     if old["previous"] is None:
                         raise ManagerError("No previous release is recorded")
                     self.verify_release(old["previous"])
-                    new = dict(old, current=old["previous"], previous=old["current"])
+                    new = self.state_record(True, old["previous"], old["current"])
                 elif command == "uninstall":
-                    new = dict(old, installed=False)
+                    new = self.state_record(False, old["current"], old["previous"])
                 else:
                     raise ManagerError("Unsupported lifecycle command")
             self.transaction(old, new)
             return self.result(command, new)
 
+    def state_record(self, installed, current, previous):
+        return {"schema_version": 1, "manager": MANAGER, "installed": installed,
+                "current": current, "previous": previous}
+
     def result(self, command, state, message=None):
+        notes = [note for note in (self.migration_note, self.recovery) if note]
         return {"schema_version": 1, "command": command, "status": "pass",
                 "installed": state["installed"], "release_id": state["current"]["release_id"],
-                "behavioral_status": "not_certified", "recovery": self.recovery,
+                "behavioral_status": "not_certified",
+                "recovery": "; ".join(notes) if notes else None,
                 "message": message or ("Owned entry removed; releases and receipts retained"
                                        if command == "uninstall" else "Managed combination selected")}
 
@@ -843,6 +990,7 @@ class Manager:
                   "behavioral_status": "not_certified", "archive_verified": None,
                   "recovery_required": False, "errors": []}
         try:
+            self.select_installed_home()
             self.check_ancestors(self.base)
             self.check_ancestors(self.entry.parent)
             if lexists(self.journal):
@@ -862,7 +1010,7 @@ class Manager:
             report["version"] = receipt["version"]
             report["package_root"] = str(folder / "package")
             report["provider_root"] = str(folder / "superpowers")
-            report["skill_root"] = str(folder / "package" / ENTRY)
+            report["skill_root"] = str(self.release_skill(state["current"]["release_id"]))
             report["archive_verified"] = receipt["archive_verified"]
             report["provider_source"] = receipt["provider_source"]
             profile = None

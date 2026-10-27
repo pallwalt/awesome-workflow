@@ -17,7 +17,7 @@ from urllib.error import HTTPError, URLError
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts/manage.py"
-SPEC = importlib.util.spec_from_file_location("dumbcane_manage", SCRIPT)
+SPEC = importlib.util.spec_from_file_location("awesome_workflow_manage", SCRIPT)
 manage = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(manage)
 
@@ -37,7 +37,7 @@ class LifecycleTests(unittest.TestCase):
         curl_lookup = mock.patch.object(manage.shutil, "which", return_value=None)
         curl_lookup.start()
         self.addCleanup(curl_lookup.stop)
-        self.temporary = tempfile.TemporaryDirectory(prefix="dumbcane-synthetic-lifecycle-")
+        self.temporary = tempfile.TemporaryDirectory(prefix="awesome-workflow-synthetic-lifecycle-")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.home = self.root / "home"
@@ -59,10 +59,11 @@ class LifecycleTests(unittest.TestCase):
         self.source_two = self.make_source("two", "0.2.0")
         self.manager = manage.Manager(self.home)
 
-    def make_source(self, name, version):
+    def make_source(self, name, version, entry=None):
         source = self.root / name
         source.mkdir()
-        skill = source / "skills/dumbcane-workflow/SKILL.md"
+        entry = entry or manage.ENTRY
+        skill = source / entry / "SKILL.md"
         skill.parent.mkdir(parents=True)
         skill.write_text(f"Entirely synthetic skill fixture {version}\n", encoding="utf-8")
         script = source / "scripts/manage.py"
@@ -81,8 +82,8 @@ class LifecycleTests(unittest.TestCase):
                       for path in self.provider.rglob("*")
                       if path.is_file() and path.name != "EXTRA.md"},
         }
-        profile_path = source / manage.PROFILE
-        profile_path.parent.mkdir()
+        profile_path = source / entry / "references/superpowers-profile.json"
+        profile_path.parent.mkdir(parents=True)
         write_json(profile_path, profile)
         self.manifest(source, version)
         return source
@@ -369,7 +370,7 @@ class LifecycleTests(unittest.TestCase):
         with self.manager.lock():
             descriptor = self.manager.prepare(self.source_two, provider_archive=self.archive)
             new = dict(old, current=descriptor, previous=old["current"])
-            parking = self.manager.entry.parent / (".dumbcane-workflow." + "a" * 32 + ".switch")
+            parking = self.manager.entry.parent / (".awesome-workflow." + "a" * 32 + ".switch")
             parking.mkdir(mode=0o700)
             write_json(self.manager.journal, {"schema_version": 1, "manager": manage.MANAGER,
                                               "old": old, "new": new, "parking": parking.name})
@@ -387,7 +388,7 @@ class LifecycleTests(unittest.TestCase):
         old = self.manager.state()
         write_json(self.manager.journal, {"schema_version": 1, "manager": manage.MANAGER,
                                           "old": old, "new": dict(old, installed=False),
-                                          "parking": ".dumbcane-workflow." + "b" * 32 + ".switch"})
+                                          "parking": ".awesome-workflow." + "b" * 32 + ".switch"})
         self.manager.entry.unlink()
         self.manager.entry.mkdir()
         note = self.manager.entry / "synthetic-user.txt"
@@ -493,7 +494,7 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(destination.read_bytes(), data)
         requests = [call.args[0] for call in opener.open.call_args_list]
         self.assertEqual({request.full_url for request in requests}, {self.download_provider()["archive_url"]})
-        self.assertTrue(requests[0].get_header("User-agent").startswith("Dumbcane-Workflow/"))
+        self.assertTrue(requests[0].get_header("User-agent").startswith(manage.USER_AGENT))
         self.assertEqual(requests[0].get_header("Accept-encoding"), "identity")
 
     def test_download_incomplete_read_and_network_error_have_bounded_retries(self):
@@ -596,7 +597,7 @@ elif mode == "oversize":
     body = b"x" * 512
 sys.stdout.buffer.write(body)
 if mode != "no_footer":
-    sys.stdout.buffer.write(("\\nDUMBCANE_HTTP_STATUS:%03d\\n" % status).encode())
+    sys.stdout.buffer.write(("\\n{manage.HTTP_STATUS_LABEL}:%03d\\n" % status).encode())
 sys.stdout.buffer.flush()
 raise SystemExit(code)
 '''
@@ -655,6 +656,141 @@ raise SystemExit(code)
                 manage.download_archive(self.download_provider(), destination)
         self.assertEqual(counter.read_text(), "1")
         self.assertFalse(destination.exists())
+
+    def move_install_to_legacy_name(self):
+        """Relocate a synthetic install onto the previous product paths and manager id."""
+        state = json.loads(self.manager.state_file.read_text())
+        receipt_path = self.manager.releases / state["current"]["release_id"] / "receipt.json"
+        receipt = json.loads(receipt_path.read_text())
+        receipt["manager"] = manage.LEGACY_MANAGER
+        write_json(receipt_path, receipt)
+        state["manager"] = manage.LEGACY_MANAGER
+        state["current"]["receipt_sha256"] = digest(receipt_path.read_bytes())
+        write_json(self.manager.state_file, state)
+        os.rename(self.manager.new_base, self.manager.legacy_base)
+        if not self.manager.new_entry.is_symlink():
+            self.assertFalse(os.path.lexists(self.manager.new_entry))
+            return
+        target = os.readlink(self.manager.new_entry)
+        prefix = str(self.manager.new_base)
+        self.assertTrue(target.startswith(prefix + os.sep), target)
+        rewritten = str(self.manager.legacy_base) + target[len(prefix):]
+        self.manager.new_entry.unlink()
+        self.manager.legacy_entry.symlink_to(rewritten)
+
+    def test_doctor_reads_legacy_install_and_update_migrates_it(self):
+        source = self.make_source("legacy-layout", "0.0.9", entry=manage.LEGACY_ENTRY)
+        self.run_cli("install", source, self.archive)
+        self.move_install_to_legacy_name()
+        before = {str(path): path.lstat().st_mtime_ns for path in self.home.rglob("*")}
+        report = self.run_cli("doctor")
+        after = {str(path): path.lstat().st_mtime_ns for path in self.home.rglob("*")}
+        self.assertEqual(before, after)
+        self.assertEqual(report["status"], "pass")
+        self.assertTrue(report["skill_root"].endswith("/" + manage.LEGACY_ENTRY))
+        self.assertFalse(self.manager.new_base.exists())
+        migrated = self.run_cli("update", source, self.archive)
+        self.assertIn(manage.LEGACY_MANAGER, migrated["recovery"])
+        self.assertFalse(self.manager.legacy_base.exists())
+        self.assertTrue(self.manager.new_base.is_dir())
+        self.assertFalse(os.path.lexists(self.manager.legacy_entry))
+        self.assertTrue(os.readlink(self.manager.new_entry).endswith("/" + manage.LEGACY_ENTRY))
+        state = json.loads((self.manager.new_base / "state.json").read_text())
+        self.assertEqual(state["manager"], manage.LEGACY_MANAGER)
+        receipt_path = self.manager.new_base / "releases" / state["current"]["release_id"] / "receipt.json"
+        self.assertEqual(json.loads(receipt_path.read_text())["manager"], manage.LEGACY_MANAGER)
+        self.assertEqual(self.run_cli("doctor")["status"], "pass")
+        self.run_cli("update", self.source_two, self.archive)
+        state = json.loads((self.manager.new_base / "state.json").read_text())
+        self.assertEqual(state["manager"], manage.MANAGER)
+        self.assertTrue(os.readlink(self.manager.new_entry).endswith("/" + manage.ENTRY))
+        previous = self.manager.new_base / "releases" / state["previous"]["release_id"] / "receipt.json"
+        self.assertEqual(json.loads(previous.read_text())["manager"], manage.LEGACY_MANAGER)
+        self.assertEqual(self.run_cli("doctor")["status"], "pass")
+
+    def test_uninstalled_legacy_home_migrates_on_install(self):
+        source = self.make_source("legacy-removed", "0.0.8", entry=manage.LEGACY_ENTRY)
+        self.run_cli("install", source, self.archive)
+        self.run_cli("uninstall")
+        self.move_install_to_legacy_name()
+        self.assertFalse(os.path.lexists(self.manager.legacy_entry))
+        self.run_cli("install", self.source, self.archive)
+        self.assertFalse(self.manager.legacy_base.exists())
+        self.assertTrue(os.readlink(self.manager.new_entry).endswith("/" + manage.ENTRY))
+        state = json.loads((self.manager.new_base / "state.json").read_text())
+        self.assertEqual(state["manager"], manage.MANAGER)
+        self.assertEqual(self.run_cli("doctor")["status"], "pass")
+
+    def test_foreign_legacy_skill_entry_is_preserved(self):
+        source = self.make_source("legacy-foreign-entry", "0.0.7", entry=manage.LEGACY_ENTRY)
+        self.run_cli("install", source, self.archive)
+        self.move_install_to_legacy_name()
+        self.manager.legacy_entry.unlink()
+        self.manager.legacy_entry.mkdir()
+        note = self.manager.legacy_entry / "synthetic-user.txt"
+        note.write_text("Synthetic independent legacy entry")
+        report = self.run_cli("update", self.source_two, self.archive, success=False)
+        self.assertIn("preserved", report["error"])
+        self.assertEqual(note.read_text(), "Synthetic independent legacy entry")
+        self.assertTrue(self.manager.legacy_base.is_dir())
+        self.assertFalse(self.manager.new_base.exists())
+
+    def test_unrecognized_legacy_directory_is_preserved(self):
+        self.manager.legacy_base.mkdir(parents=True)
+        note = self.manager.legacy_base / "keep.txt"
+        note.write_text("Synthetic unrelated directory")
+        report = self.run_cli("install", self.source, self.archive, success=False)
+        self.assertIn("preserved", report["error"])
+        self.assertEqual(note.read_text(), "Synthetic unrelated directory")
+        self.assertFalse(self.manager.new_base.exists())
+
+    def test_legacy_directory_with_other_manager_id_is_preserved(self):
+        source = self.make_source("legacy-other-manager", "0.0.6", entry=manage.LEGACY_ENTRY)
+        self.run_cli("install", source, self.archive)
+        self.move_install_to_legacy_name()
+        state_path = self.manager.legacy_base / "state.json"
+        state = json.loads(state_path.read_text())
+        state["manager"] = "other-tool"
+        write_json(state_path, state)
+        link = os.readlink(self.manager.legacy_entry)
+        report = self.run_cli("update", self.source_two, self.archive, success=False)
+        self.assertIn("preserve", report["error"])
+        self.assertEqual(os.readlink(self.manager.legacy_entry), link)
+        self.assertTrue(self.manager.legacy_base.is_dir())
+        self.assertFalse(self.manager.new_base.exists())
+
+    def test_both_product_directories_are_preserved(self):
+        self.install()
+        self.manager.legacy_base.mkdir()
+        note = self.manager.legacy_base / "keep.txt"
+        note.write_text("Synthetic second directory")
+        before = self.snapshot_active()
+        report = self.run_cli("update", self.source_two, self.archive, success=False)
+        self.assertIn("preserved", report["error"])
+        self.assertEqual(note.read_text(), "Synthetic second directory")
+        self.assertEqual(self.snapshot_active(), before)
+        doctor = self.run_cli("doctor", success=False)
+        self.assertIn("preserved", " ".join(doctor["errors"]))
+        self.assertTrue(self.manager.legacy_base.is_dir())
+
+    def test_legacy_parking_name_and_manager_id_can_recover(self):
+        self.install()
+        old = dict(self.manager.state(), manager=manage.LEGACY_MANAGER)
+        write_json(self.manager.state_file, old)
+        with self.manager.lock():
+            descriptor = self.manager.prepare(self.source_two, provider_archive=self.archive)
+            new = dict(old, current=descriptor, previous=old["current"])
+            parking = self.manager.entry.parent / ("." + manage.LEGACY_MANAGER + "." + "c" * 32 + ".switch")
+            parking.mkdir(mode=0o700)
+            write_json(self.manager.journal, {"schema_version": 1, "manager": manage.LEGACY_MANAGER,
+                                              "old": old, "new": new, "parking": parking.name})
+            self.manager.switch(self.manager.expected_target(old), self.manager.expected_target(new), parking)
+        self.run_cli("doctor", success=False)
+        self.run_cli("update", self.source, self.archive)
+        self.assertEqual(self.manager.state()["manager"], manage.LEGACY_MANAGER)
+        self.assertEqual(self.manager.state()["current"], old["current"])
+        self.assertFalse(self.manager.journal.exists())
+        self.assertFalse(parking.exists())
 
 
 if __name__ == "__main__":

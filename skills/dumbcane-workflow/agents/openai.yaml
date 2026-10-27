@@ -1,4 +1,0 @@
-interface:
-  display_name: "Dumbcane Workflow"
-  short_description: "Guided Superpowers for building and maintaining projects"
-  default_prompt: "Use $dumbcane-workflow to turn my development request into a runnable, verifiable result with a clear continuation point."
